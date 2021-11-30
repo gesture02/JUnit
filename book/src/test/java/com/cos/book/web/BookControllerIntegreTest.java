@@ -3,6 +3,7 @@ package com.cos.book.web;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -12,6 +13,7 @@ import java.util.List;
 import javax.persistence.EntityManager;
 
 import org.hamcrest.Matchers;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,9 +56,21 @@ public class BookControllerIntegreTest {
 	private EntityManager entityManager;
 	
 	@BeforeEach//실행 전에 무조건 실행되는 것, 여기서 시행되기 전에 서로 독립적으로 만들어주면된다.
-	public void init() {//ALTER TABLE book AUTO_INCREMENT = 1
-		entityManager.createNativeQuery("ALTER TABLE book ALTER COLUMN id RESTART WITH 1").executeUpdate();
+	public void init() {
+//		List<Book> books = new ArrayList<>();
+//		books.add(new Book(null, "Spring", "cos"));
+//		books.add(new Book(null, "React", "cos"));
+//		books.add(new Book(null, "JUnit", "cos"));
+//		bookRepository.saveAll(books);
+//		entityManager.createNativeQuery("ALTER TABLE book ALTER COLUMN id RESTART WITH 1").executeUpdate();
+		entityManager.createNativeQuery("ALTER TABLE book AUTO_INCREMENT = 1").executeUpdate();
+
 	}
+	
+//	@AfterEach
+//	public void end() {
+//		bookRepository.deleteAll();
+//	}
 	
 	// BDDMockito 패턴 : given, when, then
 	@Test
@@ -72,8 +86,7 @@ public class BookControllerIntegreTest {
 		ResultActions resultAction = mockMvc.perform(post("/book")
 				.contentType(MediaType.APPLICATION_JSON_UTF8)
 				.content(content)
-				.accept(MediaType.APPLICATION_JSON_UTF8)
-				);
+				.accept(MediaType.APPLICATION_JSON_UTF8));
 		
 		//then (검증)
 		resultAction
@@ -87,8 +100,9 @@ public class BookControllerIntegreTest {
 	public void findAll_test() throws Exception {
 		//given
 		List<Book> books = new ArrayList<>();
-		books.add(new Book(null, "spring", "cos"));
-		books.add(new Book(null, "react", "cos"));
+		books.add(new Book(null, "Spring", "cos"));
+		books.add(new Book(null, "React", "cos"));
+		books.add(new Book(null, "JUnit", "cos"));
 		bookRepository.saveAll(books);
 		
 		//when
@@ -100,6 +114,55 @@ public class BookControllerIntegreTest {
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$", Matchers.hasSize(2)))
 			.andExpect(jsonPath("$.[0].title").value("spring"))
+			.andDo(MockMvcResultHandlers.print());
+			
+	}
+	
+	@Test
+	public void findById_test() throws Exception {
+		// given
+		Long id = 1L;
+		List<Book> books = new ArrayList<>();
+		books.add(new Book(null, "Spring", "cos"));
+		books.add(new Book(null, "React", "cos"));
+		books.add(new Book(null, "JUnit", "cos"));
+		bookRepository.saveAll(books);
+		
+		// when
+		ResultActions resultAction = mockMvc.perform(get("/book/{id}", id)
+				.accept(MediaType.APPLICATION_JSON_UTF8));
+		
+		// then
+		resultAction
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.title").value("spring"))
+			.andDo(MockMvcResultHandlers.print());
+	}
+	
+	@Test
+	public void update_test() throws Exception {
+		//given
+		Long id = 1L;
+		List<Book> books = new ArrayList<>();
+		books.add(new Book(null, "Spring", "cos"));
+		books.add(new Book(null, "React", "cos"));
+		books.add(new Book(null, "JUnit", "cos"));
+		bookRepository.saveAll(books);
+		
+		Book book= new Book(null, "aaa", "cos");
+		String content = new ObjectMapper().writeValueAsString(book);
+		//when
+		ResultActions resultAction = mockMvc.perform(put("/book/{id}", id)
+				.contentType(MediaType.APPLICATION_JSON_UTF8)
+				.content(content)
+				.accept(MediaType.APPLICATION_JSON_UTF8));
+				
+		
+		//then
+		resultAction
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.id").value(1L))
+			.andExpect(jsonPath("$.title").value("aaa"))
 			.andDo(MockMvcResultHandlers.print());
 			
 	}
