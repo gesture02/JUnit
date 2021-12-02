@@ -10,7 +10,7 @@
 
 ### React
 
-- yarn add react-router-dom
+- yarn add react-router-dom@5.2
 - yarn add redux react-redux
 - yarn add react-bootstrap bootstrap
 
