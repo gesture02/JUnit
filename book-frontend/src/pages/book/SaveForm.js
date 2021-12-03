@@ -23,6 +23,7 @@ const SaveForm = (props) => {
         }
       })
       .then((res) => {
+        //여기서 오류가 나면 catch실행
         if (res !== null) {
           props.history.push('/');
         } else {
